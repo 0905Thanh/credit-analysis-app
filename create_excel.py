@@ -11,7 +11,7 @@ data = {
     "age": [25, 40, 35, 50],
     "income": [50000, 80000, 60000, 90000],
     "credit_score": [700, 650, 720, 600],
-    "loan_amount": [10000, 20000, 15000, 25000]  # Thêm cột loan_amount
+    "loan_amount": [10000, 20000, 15000, 25000]
 }
 
 df = pd.DataFrame(data)
