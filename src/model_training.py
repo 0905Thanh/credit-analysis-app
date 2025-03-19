@@ -20,8 +20,12 @@ def prepare_data(df):
     mapping = {"Low": 0, "Medium": 1, "High": 2}
     df["risk_level_encoded"] = df["risk_level"].map(mapping)
 
-    # Chọn các feature, ví dụ: age, income, credit_score, loan_amount, debt_to_income
-    features = ["age", "income", "credit_score", "loan_amount", "debt_to_income"]
+    # Chọn các feature, ví dụ: age, total_income, credit_score, loan_amount, debt_to_income, emi, dti, loan_to_income
+    features = [
+        "age", "total_income", "credit_score", "loan_amount", 
+        "debt_to_income", "emi", "dti", "loan_to_income"
+    ]
+    
     X = df[features]
     y = df["risk_level_encoded"]
 
@@ -51,10 +55,14 @@ def save_model(model, model_path):
     print(f"Mô hình đã được lưu tại: {model_path}")
 
 if __name__ == "__main__":
-    # Tải dữ liệu có đặc trưng
+    # Tải dữ liệu có đặc trưng từ file Excel đã được tính toán các đặc trưng mới
     feature_file = os.path.join("data", "processed", "customer_credit_data_features.xlsx")
     df = load_feature_data(feature_file)
+    
+    # Chuẩn bị dữ liệu cho mô hình
     X, y = prepare_data(df)
+    
+    # Huấn luyện mô hình và tính độ chính xác
     model, accuracy = train_model(X, y)
     
     # Lưu mô hình

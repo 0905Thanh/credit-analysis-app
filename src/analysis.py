@@ -1,35 +1,47 @@
-# src/analysis.py
 import pandas as pd
 import joblib
 
-def load_model(model_path):
-    """
-    Tải mô hình tín dụng từ file joblib.
-    """
-    return joblib.load(model_path)
+# Tải mô hình
+model_path = 'models/credit_risk_model.joblib'
+model = joblib.load(model_path)
 
-def process_input_data(input_data):
+def calculate_emi(loan_amount, interest_rate, repayment_period):
     """
-    Chuyển đổi dữ liệu nhập từ giao diện thành DataFrame và xử lý các kiểu dữ liệu.
-    Các trường số sẽ được chuyển thành số float.
+    Tính số tiền trả góp hàng tháng (EMI) dựa trên công thức EMI.
     """
-    numeric_fields = ["age", "main_salary", "passive_salary", "total_income", 
-                      "credit_score", "loan_amount", "debt_to_income", "repayment_period"]
-    processed_data = {}
-    for key, value in input_data.items():
-        if key in numeric_fields:
-            try:
-                processed_data[key] = float(value)
-            except ValueError:
-                processed_data[key] = 0.0
-        else:
-            processed_data[key] = value
-    return pd.DataFrame([processed_data])
+    r = interest_rate / 12 / 100  # Lãi suất hàng tháng
+    n = repayment_period  # Số tháng
+    
+    # Công thức tính EMI
+    emi = loan_amount * r * (1 + r) ** n / ((1 + r) ** n - 1)
+    return emi
 
-def predict_credit_risk(model, df):
+def calculate_dti(total_income, emi):
     """
-    Dự đoán mức rủi ro tín dụng bằng cách sử dụng mô hình đã tải.
+    Tính tỷ lệ nợ trên thu nhập (DTI).
     """
-    # Giả sử mô hình đã được huấn luyện với các đặc trưng phù hợp.
-    prediction = model.predict(df)[0]
-    return prediction
+    dti = (emi / total_income) * 100
+    return dti
+
+def calculate_loan_to_income(loan_amount, total_income):
+    """
+    Tính tỷ lệ vay trên thu nhập (Loan-to-Income).
+    """
+    loan_to_income = total_income / loan_amount
+    return loan_to_income
+
+def predict_credit_risk(input_data):
+    """
+    Dự đoán mức độ rủi ro tín dụng dựa trên các đặc trưng đã tính toán.
+    """
+    # Chuyển đổi dữ liệu đầu vào thành DataFrame
+    df_input = pd.DataFrame([input_data])
+    
+    # Dự đoán mức độ rủi ro
+    prediction = model.predict(df_input)[0]
+
+    # Mã hóa kết quả
+    risk_mapping = {0: "Low", 1: "Medium", 2: "High"}
+    risk_level = risk_mapping.get(prediction, "Unknown")
+
+    return risk_level
