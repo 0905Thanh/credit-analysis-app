@@ -1,0 +1,21 @@
+--- Báo Cáo Chi Tiết ---
+
+Thông tin khách hàng:
+Tên: Tô Phước Thạnh
+Tuổi: 21.0
+Nghề nghiệp: Bác sĩ
+Lương chính: 7000.0
+Lương thụ động: 500.0
+Điểm tín dụng: 780.0
+Số tiền vay: 15000.0
+Lãi suất ngân hàng: 7.0
+Thời gian chi trả: 7
+Tỷ lệ nợ trên thu nhập (DTI): 29.24
+
+Chỉ số tài chính:
+Tổng thu nhập: 7500.0
+EMI: 2193
+DTI: 29.24
+Loan-to-Income: 2.0
+Mức độ rủi ro dự đoán: Low
+Lời khuyên: Chúc mừng! Bạn có mức độ rủi ro tín dụng thấp. Bạn có thể tiến hành vay với các điều kiện thuận lợi.
