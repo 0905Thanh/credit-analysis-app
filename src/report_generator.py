@@ -1,4 +1,5 @@
 # report_generator.py
+import pandas as pd
 def generate_report(input_data, emi, dti, loan_to_income, risk_level, advice):
     """
     Hàm tạo báo cáo chi tiết dựa trên dữ liệu đầu vào và kết quả tính toán.
