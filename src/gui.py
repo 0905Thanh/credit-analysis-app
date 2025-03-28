@@ -6,7 +6,52 @@ from src.payment_schedule import generate_payment_schedule
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from src.report_generator import generate_report  # Import hàm tạo báo cáo chi tiết
 from tkinter.simpledialog import askstring
+import pandas as pd
+import os
 
+
+import pandas as pd
+import os
+from tkinter import messagebox
+
+def save_prediction_to_excel(name, age, occupation, income, loan_amount, credit_score, risk_level):
+    # Đảm bảo rằng thư mục con 'data/data' đã tồn tại
+    folder_path = r"D:\SourceCode\Creadit\data\data"  # Đảm bảo đúng thư mục
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)  # Tạo thư mục nếu không có
+    
+    file_path = os.path.join(folder_path, 'predicted_result.xlsx')  # Đảm bảo file được lưu trong thư mục data/data
+
+    # Dữ liệu cần lưu
+    data = {
+        "Họ và Tên": [name],
+        "Tuổi": [age],
+        "Nghề Nghiệp": [occupation],
+        "Lương chính": [income],
+        "Lương thu động": [loan_amount],
+        "Điểm tín dụng": [credit_score],
+        "Risk": [risk_level]  # Chỉ lưu "Risk" mà không có các thông tin khác
+    }
+
+    # Chuyển dữ liệu thành DataFrame
+    df = pd.DataFrame(data)
+
+    # Kiểm tra xem file đã tồn tại hay chưa và lưu thêm dữ liệu
+    try:
+        if os.path.exists(file_path):
+            # Nếu file đã tồn tại, mở và thêm vào cuối bảng, không ghi lại tiêu đề
+            with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+                df.to_excel(writer, index=False, header=False, sheet_name="Sheet1", startrow=len(pd.read_excel(file_path)) + 1)  # Đảm bảo thêm vào cuối bảng
+        else:
+            # Nếu file chưa tồn tại, tạo file mới và ghi tiêu đề
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, header=True, sheet_name="Sheet1")
+        
+        messagebox.showinfo("Thông báo", f"Kết quả đã được lưu vào file '{file_path}'")
+    except Exception as e:
+        messagebox.showerror("Lỗi", f"Không thể lưu kết quả: {str(e)}")
+
+        
 def save_report(report_text):
     """
     Hàm lưu báo cáo chi tiết vào tệp văn bản.
@@ -91,6 +136,7 @@ def predict_risk(age_var, main_salary_var, passive_salary_var, credit_score_var,
         report_display.delete(1.0, tk.END)  # Xóa báo cáo cũ
         report_display.insert(tk.END, report_text)  # Hiển thị báo cáo mới
         report_display.config(state=tk.DISABLED)  # Không cho chỉnh sửa báo cáo
+        save_prediction_to_excel(name_var.get(), age, occupation_var.get(), total_income, loan_amount, credit_score, risk_level)
 
     except ValueError:
         messagebox.showerror("Lỗi", "Vui lòng nhập dữ liệu hợp lệ cho tất cả các trường.")
@@ -202,13 +248,34 @@ def run_app():
     tk.Label(predict_tab, text="Thời gian chi trả (tháng):", bg="#e0f7fa", font=("Arial", 12, 'bold')).grid(row=8, column=0, padx=10, pady=10, sticky="w")
     tk.Entry(predict_tab, textvariable=repayment_period_var, width=30, font=("Arial", 12)).grid(row=8, column=1, padx=10, pady=10)
 
+    # Tạo một Frame để chứa các nút để tránh sự thay đổi vị trí của các nút
+    button_frame = ttk.Frame(predict_tab)
+    button_frame.grid(row=13, column=0, columnspan=2, pady=20)
+
     # Nút Dự đoán
-    predict_button = tk.Button(predict_tab, text="Dự đoán", command=lambda: predict_risk(age_var, main_salary_var, passive_salary_var, credit_score_var, loan_amount_var, bank_rate_var, repayment_period_var, result_var, advice_var, report_var, name_var, occupation_var, report_display), bg="#4CAF50", fg="white", font=("Arial", 12, 'bold'))
-    predict_button.grid(row=9, column=0, columnspan=2, pady=20)
+    predict_button = tk.Button(button_frame, text="Dự đoán", 
+                           command=lambda: predict_risk(age_var, main_salary_var, passive_salary_var, credit_score_var, 
+                                                        loan_amount_var, bank_rate_var, repayment_period_var, result_var, 
+                                                        advice_var, report_var, name_var, occupation_var, report_display), 
+                           bg="#4CAF50", fg="white", font=("Arial", 12, 'bold'))
+    predict_button.grid(row=0, column=0, padx=10)
+
+    # Nút Lưu kết quả
+    save_button = tk.Button(button_frame, text="Lưu kết quả", 
+                        command=lambda: save_prediction_to_excel(name_var.get(), age_var.get(), occupation_var.get(), 
+                                                                  float(main_salary_var.get()) + float(passive_salary_var.get()), 
+                                                                  float(loan_amount_var.get()), float(credit_score_var.get()), 
+                                                                  result_var.get()), 
+                        bg="#8E44AD", fg="white", font=("Arial", 12, 'bold'))
+    save_button.grid(row=0, column=1, padx=10)
 
     # Nút Báo cáo lộ trình thanh toán
-    payment_schedule_button = tk.Button(predict_tab, text="Hiển thị lộ trình thanh toán", command=lambda: show_payment_schedule(loan_amount_var, bank_rate_var, repayment_period_var, payment_schedule_tab), bg="#2196F3", fg="white", font=("Arial", 12, 'bold'))
-    payment_schedule_button.grid(row=10, column=0, columnspan=2, pady=20)
+    payment_schedule_button = tk.Button(button_frame, text="Hiển thị lộ trình thanh toán", 
+                                    command=lambda: show_payment_schedule(loan_amount_var, bank_rate_var, repayment_period_var, 
+                                                                           payment_schedule_tab), 
+                                    bg="#2196F3", fg="white", font=("Arial", 12, 'bold'))
+    payment_schedule_button.grid(row=0, column=2, padx=10)
+
 
     # Thêm nút để hiển thị biểu đồ từ file hoặc dữ liệu người dùng nhập
     show_visualization_button = tk.Button(visualization_tab, text="Hiển thị biểu đồ từ file hoặc nhập liệu", command=lambda: show_visualization_button_click(visualization_tab), bg="#FFC107", fg="white", font=("Arial", 12, 'bold'))
